@@ -209,69 +209,266 @@ var LightController = {
   manufacturer: "HAP-NodeJS", // Manufacturer (optional)
   model: "Unicorn pHAT", // Model (optional, not changeable by the user)
   serialNumber: "homekit.xoblite.net", // Serial number (optional)
+  firmwareRevision: "0.8.4", // Firmware version (optional)
 
   power: true, // Default power status
-  brightness: 9, // Default brightness
+  brightness: 1, // Default brightness (>=10) or display mode (<10), where 1 -> CPU load display mode
   hue: 0, // Default hue
   saturation: 10, // Default saturation
 
   outputLogs: true, // Enable logging to the console?
 
-  cpuLoadMode: false, // CPU load mode enabled?
-  cpuLoadModeInterval: null, // Pointer to a setInterval object when CPU load mode has been enabled
+  currentDisplayMode: 0, // Current display mode, e.g. Regular Light (0), CPU load (1), Rainbow (2) ...
+  currentDisplayModeInterval: null, // Pointer to a setInterval object when any dynamic/animated display mode has been enabled
   cpuLoadModeIdleTime: 0, // Last CPU idle time measurement, used when calculating the current CPU load
   cpuLoadModeTimeStamp: 0, // Last millisecond time stamp, used when calculating the current CPU load
-  rainbowModeInterval: null, // Pointer to a setInterval object when Rainbow mode has been enabled
-  rainbowModeParam: 0.0, // Dynamic variable used by the Rainbow mode animation function
+  rainbowModeParam: 0.0, // Dynamic variable used by the Rainbow display mode animation function
 
   // ====================
   
-  // Update Unicorn pHAT display based on accessory parameters (power + HSV) and/or selected display mode...
-  updateUnicorn: function() {
-    // if (this.outputLogs) console.log("%s -> INFO -> Updating LED display...", this.name);
+  // Update Unicorn pHAT display...
+  updateUnicorn: function(updateDisplayMode) {
 
-    if ((this.brightness == 9) && (this.hue == 0)) // CPU load display mode
+//    if (updateDisplayMode)
     {
-      if (this.power)
+      // Stop any previously running dynamic (e.g. CPU load) or animated (e.g. Rainbow) display modes...
+      if (this.currentDisplayMode > 0)
       {
-        if (!this.cpuLoadMode)
+        if (this.outputLogs) 
+        {
+          if (this.currentDisplayMode == 1) console.log("%s -> MODE -> Disabling CPU load display mode.", this.name);
+          else if (this.currentDisplayMode == 2) console.log("%s -> MODE -> Disabling Rainbow display mode.", this.name);
+          else if (this.currentDisplayMode == 3) console.log("%s -> MODE -> Disabling Random Blinky display mode.", this.name);
+        }
+        clearInterval(this.currentDisplayModeInterval);
+        this.currentDisplayModeInterval = null;
+      }
+
+      // Switch to the newly selected display mode...
+      if (this.power && (this.brightness > 0))
+      {
+        if (this.brightness == 1) // CPU load display mode
         {
           if (this.outputLogs) console.log("%s -> MODE -> Enabling CPU load display mode.", this.name);
+          this.currentDisplayMode = 1;
           this.cpuLoadModeIdleTime = this.cpuLoadModeTimeStamp = 0;
-          this.cpuLoadMode = true;
           this.cpuloadavgUnicorn();
-          this.cpuLoadModeInterval = setInterval(this.cpuloadavgUnicorn, 3000);
+          this.currentDisplayModeInterval = setInterval(this.cpuloadavgUnicorn, 3000);
+        }
+        else if (this.brightness == 2) // Rainbow display mode
+        {
+          if (this.outputLogs) console.log("%s -> MODE -> Enabling Rainbow display mode.", this.name);
+          this.currentDisplayMode = 2;
+          driver.setBrightness(50);
+          this.rainbowModeParam = 0.0;
+          this.rainbowUnicorn();
+          this.currentDisplayModeInterval = setInterval(this.rainbowUnicorn, 20); // -> 50 FPS... ;)
+        }
+        else if (this.brightness == 3) // Random Blinky display mode
+        {
+          if (this.outputLogs) console.log("%s -> MODE -> Enabling Random Blinky display mode.", this.name);
+          this.currentDisplayMode = 3;
+          driver.setBrightness(25);
+          this.randomUnicorn();
+          this.currentDisplayModeInterval = setInterval(this.randomUnicorn, 250);
+        }
+        else if (this.brightness == 9) // Icons display mode
+        {
+          if (this.outputLogs) console.log("%s -> MODE -> Icons display mode -> Displaying icon #%s.", this.name, this.hue);
+          this.currentDisplayMode = 0; // -> This is a non-animated display mode
+
+          var minBrightness = this.saturation;
+          if (this.saturation < 10) minBrightness = 10;
+          driver.setBrightness(minBrightness);  
+
+          switch (this.hue)
+          {
+            case 360: driver.render(iconSweden); break;
+            case 359: driver.render(iconNorway); break;
+            case 358: driver.render(iconDenmark); break;
+            case 357: driver.render(iconFinland); break;
+            case 356: driver.render(iconIceland); break;
+            case 355: driver.render(iconUK); break;
+            case 354: driver.render(iconUSA); break;
+
+            case 201: driver.render(iconMail); break;
+
+            case 111: driver.render(iconCake); break;
+            case 110: driver.render(iconHeart); break;
+            case 105: driver.render(iconPacMan); break;
+            case 104: driver.render(iconSkull); break;
+            case 103: driver.render(iconSad); break;
+            case 102: driver.render(iconMeh); break;
+            case 101: driver.render(iconHappy); break;
+
+            case 14: driver.render(iconRightUp); break;
+            case 13: driver.render(iconLeftDown); break;
+            case 12: driver.render(iconExclamationMark); break;
+            case 11: driver.render(iconQuestionMark); break;
+
+            case 9: driver.render(icon90percent); break;
+            case 8: driver.render(icon80percent); break;
+            case 7: driver.render(icon70percent); break;
+            case 6: driver.render(icon60percent); break;
+            case 5: driver.render(icon50percent); break;
+            case 4: driver.render(icon40percent); break;
+            case 3: driver.render(icon30percent); break;
+            case 2: driver.render(icon20percent); break;
+            case 1: driver.render(icon10percent); break;
+
+            default: driver.render(iconDefault);
+          }
+        }
+        else // Regular Light display mode
+        {
+          if (this.outputLogs) console.log("%s -> MODE -> Regular Light display mode.", this.name);
+          this.currentDisplayMode = 0; // -> This is a non-animated display mode
+
+          // Calculate output RGB from input HSV...
+          // (Nb. We're using full brightness (v) for these calculations; actual LED brightness applied later.)
+          var h = (this.hue / 360), s = (this.saturation / 100), v = 1;
+          var r, g, b, i, f, p, q, t;
+
+          if (s == 0) {
+            r = g = b = v;
+          }
+          else
+          {
+            i = Math.floor(h * 6);
+            f = h * 6 - i;
+            p = v * (1 - s);
+            q = v * (1 - f * s);
+            t = v * (1 - (1 - f) * s);
+            switch (i % 6) {
+                case 0: r = v, g = t, b = p; break;
+                case 1: r = q, g = v, b = p; break;
+                case 2: r = p, g = v, b = t; break;
+                case 3: r = p, g = q, b = v; break;
+                case 4: r = t, g = p, b = v; break;
+                case 5: r = v, g = p, b = q; break;
+            }
+          }
+
+          // Merge calculated r,g,b to RBG... (0xrrggbb)
+          r = Math.round(r * 255) * 256 * 256;
+          g = Math.round(g * 255) * 256;
+          b = Math.round(b * 255);
+          var rgb = r+g+b;
+          // var rgb = ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
+
+          for (var n = 0; n < numLeds; n++) {
+            leds[n] = rgb;
+          }
+          // var unicornBrightness = Math.round(this.brightness * 2.55); // The Unicorn pHAT takes values 0-255, HomeKit uses percentages 0-100%
+          // if (this.power && (this.brightness > 0)) driver.setBrightness(unicornBrightness);
+          driver.setBrightness(this.brightness);
+          driver.render(leds);
         }
       }
-      else
+      else // Power off display
       {
-        if (this.cpuLoadMode)
-        {
-          clearInterval(this.cpuLoadModeInterval);
-          this.cpuLoadMode = false;
-          if (this.outputLogs) console.log("%s -> MODE -> Disabling CPU load display mode.", this.name);
-        }
+        if (this.outputLogs) console.log("%s -> INFO -> Powering off display.", this.name);
+        this.currentDisplayMode = 0;
         driver.setBrightness(0);
+        driver.render(iconDefault);
       }
     }
-    else // Regular, Status and Icons display modes
-    {
-      if (this.cpuLoadMode)
-      {
-        clearInterval(this.cpuLoadModeInterval);
-        this.cpuLoadMode = false;
-        if (this.outputLogs) console.log("%s -> MODE -> Disabling CPU load display mode.", this.name);
-      }
+  },
 
-      // Calculate output RGB from input HSV...
-      var h = (this.hue / 360), s = (this.saturation / 100), v = 1; // Nb. Use full brightness (v) for these calculations; actual LED brightness applied later.
-      var r, g, b, i, f, p, q, t;
+  // ====================
 
-      if (s == 0) {
-        r = g = b = v;
+  cpuloadavgUnicorn: function() {
+      // NOTE: Because this function is not only called directly but also spawned continuously through setInterval(),
+      // we can not use this.xxx references in here, but need to address directly using LightController.xxx .
+
+      var minBrightness = LightController.saturation;
+      if (LightController.saturation < 10) minBrightness = 10;
+      driver.setBrightness(minBrightness);
+
+      // if (LightController.outputLogs) console.log("%s -> DEBUG -> Calculating CPU load...", this.name);
+
+     // Calculate CPU load as 3 second average... (cf. top's update frequency, see also setInterval() @ 3000 msec above)
+      var currentIdleTime = 0;
+      for (var n = 0; n < os.cpus().length; n++) {
+        currentIdleTime += (os.cpus()[n].times.idle / 10);
       }
+      var currentTimeStamp = performance.now();
+
+      if (LightController.cpuLoadModeTimeStamp == 0) driver.render(icon10percent);
       else
       {
+        var load = 1 - ((currentIdleTime - LightController.cpuLoadModeIdleTime) / (currentTimeStamp - LightController.cpuLoadModeTimeStamp));
+        if (load < 0.15) driver.render(icon10percent);
+        else if (load < 0.25) driver.render(icon20percent);
+        else if (load < 0.35) driver.render(icon30percent);
+        else if (load < 0.45) driver.render(icon40percent);
+        else if (load < 0.55) driver.render(icon50percent);
+        else if (load < 0.65) driver.render(icon60percent);
+        else if (load < 0.75) driver.render(icon70percent);
+        else if (load < 0.85) driver.render(icon80percent);
+        else driver.render(icon90percent);  
+      }
+
+      LightController.cpuLoadModeIdleTime = currentIdleTime;
+      LightController.cpuLoadModeTimeStamp = currentTimeStamp;
+    },
+
+  // ====================
+
+  // NOTE: The following function is a mostly direct port to this framework
+  // of the rainbow.py Unicorn pHAT python example code by Pimoroni. Thanks guys... :)
+
+  rainbowUnicorn: function() {
+    // NOTE: Because this function is not only called directly but also spawned continuously through setInterval(),
+    // we can not use this.xxx references in here, but need to address directly using LightController.xxx .
+    
+//    var minBrightness = this.saturation;
+//    if (LightController.saturation < 10) minBrightness = 10;
+//    driver.setBrightness(minBrightness);
+
+    LightController.rainbowModeParam += 0.3;
+    var offset = 30;
+    var r = 0, g = 0, b = 0;
+    for (var y = 0; y < numRows; y++) {
+      for (var x = 0; x < numCols; x++) {
+        r = (Math.cos((x+LightController.rainbowModeParam)/2.0) + Math.cos((y+LightController.rainbowModeParam)/2.0)) * 64.0 + 128.0;
+        g = (Math.sin((x+LightController.rainbowModeParam)/1.5) + Math.sin((y+LightController.rainbowModeParam)/2.0)) * 64.0 + 128.0;
+        b = (Math.sin((x+LightController.rainbowModeParam)/2.0) + Math.cos((y+LightController.rainbowModeParam)/1.5)) * 64.0 + 128.0;
+        r = Math.max(0, Math.min(255, r + offset));
+        g = Math.max(0, Math.min(255, g + offset));
+        b = Math.max(0, Math.min(255, b + offset));
+        leds[x+(y*8)] = ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
+      }
+    }
+    // if (LightController.outputLogs) console.log("%s -> DEBUG -> Updating Rainbow...", LightController.name);
+    driver.render(leds);
+  },
+  
+  // ====================
+
+  // NOTE: The following function is a adapted and modified port to this framework
+  // of the random_blinky.py Unicorn pHAT python example code by Pimoroni. Thanks guys... :)
+
+  randomUnicorn: function() {
+    // NOTE: Because this function is not only called directly but also spawned continuously through setInterval(),
+    // we can not use this.xxx references in here, but need to address directly using LightController.xxx .
+    
+//    var minBrightness = this.saturation;
+//    if (LightController.saturation < 10) minBrightness = 10;
+//    driver.setBrightness(minBrightness);
+
+    var r = 0, g = 0, b = 0, h = 0, s = 0, v = 0, rndm = 0, i, f, p, q, t;
+    for (var y = 0; y < numRows; y++) {
+      for (var x = 0; x < numCols; x++) {
+        rndm = Math.random();
+        h = 0.1 * rndm;
+        s = 0.8;
+//        v = rndm;
+        v = 0.2 + (0.8 * rndm);
+//        h = (LightController.hue / 360) * rndm;
+//        s = (LightController.saturation / 100); // 0.8;
+//        v = 1;
+
         i = Math.floor(h * 6);
         f = h * 6 - i;
         p = v * (1 - s);
@@ -285,167 +482,18 @@ var LightController = {
             case 4: r = t, g = p, b = v; break;
             case 5: r = v, g = p, b = q; break;
         }
-      }
 
-      // Merge calculated r,g,b to RBG... (0xrrggbb)
-      r = Math.round(r * 255) * 256 * 256;
-      g = Math.round(g * 255) * 256;
-      b = Math.round(b * 255);
-      var rgb = r+g+b;
-//      var rgb = ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
-
-      if (this.brightness >= 10) // Regular display mode
-      {
-        if (this.outputLogs) console.log("%s -> INFO -> Regular light mode.", this.name);
-        for (var n = 0; n < numLeds; n++) {
-          leds[n] = rgb;
-        }
-        // var unicornBrightness = Math.round(this.brightness * 2.55); // The Unicorn pHAT takes values 0-255, HomeKit uses percentages 0-100%
-        // if (this.power && (this.brightness > 0)) driver.setBrightness(unicornBrightness);
-        if (this.power && (this.brightness > 0)) driver.setBrightness(this.brightness);
-        else driver.setBrightness(0);
-        driver.render(leds);
-      }
-      else
-      {
-        // 1-8 -> Status display mode, indicators 1-8
-        if (this.brightness < 9)
-        {
-//          var offset = (this.brightness - 1) * 2;
-//          if (this.brightness > 4) offset += 8; // Lower row of status indicators (i.e. indicators 5-8)
-//          leds[offset] = leds[offset+1] = leds[offset+8] = leds[offset+9] = rgb;
-//          if (this.power) driver.setBrightness(10);
-//          else driver.setBrightness(0);
-//          driver.render(leds);
-
-          this.rainbowModeParam = 0.0;
-          this.rainbowUnicorn();
-          this.rainbowModeInterval = setInterval(this.rainbowUnicorn, 200);
-        }
-        else // 9 (and hue>0) -> Icon display mode
-        {
-          if (this.power)
-          {
-            if (this.outputLogs) console.log("%s -> INFO -> Displaying icon #%s.", this.name, this.hue);
-            var minBrightness = this.saturation;
-            if (this.saturation < 10) minBrightness = 10;
-            driver.setBrightness(minBrightness);  
-
-            switch (this.hue)
-            {
-              case 360: driver.render(iconSweden); break;
-              case 359: driver.render(iconNorway); break;
-              case 358: driver.render(iconDenmark); break;
-              case 357: driver.render(iconFinland); break;
-              case 356: driver.render(iconIceland); break;
-              case 355: driver.render(iconUK); break;
-              case 354: driver.render(iconUSA); break;
-  
-              case 201: driver.render(iconMail); break;
-  
-              case 111: driver.render(iconCake); break;
-              case 110: driver.render(iconHeart); break;
-              case 105: driver.render(iconPacMan); break;
-              case 104: driver.render(iconSkull); break;
-              case 103: driver.render(iconSad); break;
-              case 102: driver.render(iconMeh); break;
-              case 101: driver.render(iconHappy); break;
-  
-              case 14: driver.render(iconRightUp); break;
-              case 13: driver.render(iconLeftDown); break;
-              case 12: driver.render(iconExclamationMark); break;
-              case 11: driver.render(iconQuestionMark); break;
-  
-              case 9: driver.render(icon90percent); break;
-              case 8: driver.render(icon80percent); break;
-              case 7: driver.render(icon70percent); break;
-              case 6: driver.render(icon60percent); break;
-              case 5: driver.render(icon50percent); break;
-              case 4: driver.render(icon40percent); break;
-              case 3: driver.render(icon30percent); break;
-              case 2: driver.render(icon20percent); break;
-              case 1: driver.render(icon10percent); break;
-  
-              default: driver.render(iconDefault);
-            }
-          }
-          else
-          {
-            driver.setBrightness(0);
-            driver.render(iconDefault);
-          }
-        }
+        r = Math.round(r * 255) * 256 * 256;
+        g = Math.round(g * 255) * 256;
+        b = Math.round(b * 255);
+        var rgb = r+g+b;
+        leds[x+(y*8)] = rgb;
       }
     }
-  },
-
-  // ====================
-
-  cpuloadavgUnicorn: function() {
-      var minBrightness = this.saturation;
-      if (this.saturation < 10) minBrightness = 10;
-//      if (this.power) driver.setBrightness(minBrightness);
-//      else driver.setBrightness(0);
-      driver.setBrightness(10);
-
-     // Calculate CPU load as 3 second average... (cf. top's update frequency, see also setInterval() @ 3000 msec above)
-      var currentIdleTime = 0;
-      for (var n = 0; n < os.cpus().length; n++) {
-        currentIdleTime += (os.cpus()[n].times.idle / 10);
-      }
-      var currentTimeStamp = performance.now();
-
-      if (this.cpuLoadModeTimeStamp == 0) driver.render(icon10percent);
-      else
-      {
-        var load = 1 - ((currentIdleTime - this.cpuLoadModeIdleTime) / (currentTimeStamp - this.cpuLoadModeTimeStamp));
-        this.cpuLoadModeIdleTime = currentIdleTime;
-        this.cpuLoadModeTimeStamp = currentTimeStamp;
-  
-        if (load < 0.15) driver.render(icon10percent);
-        else if (load < 0.25) driver.render(icon20percent);
-        else if (load < 0.35) driver.render(icon30percent);
-        else if (load < 0.45) driver.render(icon40percent);
-        else if (load < 0.55) driver.render(icon50percent);
-        else if (load < 0.65) driver.render(icon60percent);
-        else if (load < 0.75) driver.render(icon70percent);
-        else if (load < 0.85) driver.render(icon80percent);
-        else driver.render(icon90percent);  
-      }
-  },
-
-  // ====================
-
-  // NOTE: The following function is a mostly direct port to this framework
-  // of the rainbow.py Unicorn pHAT example file by Pimoroni. Thanks guys... :)
-  rainbowUnicorn: function() {
-//    var minBrightness = this.saturation;
-//    if (this.saturation < 10) minBrightness = 10;
-//      if (this.power) driver.setBrightness(minBrightness);
-//      else driver.setBrightness(0);
-    driver.setBrightness(50);
-
-    this.rainbowModeParam += 0.3;
-    const offset = 30;
-    for (var y = 0; y < numRows; y++)
-    {
-      for (var x = 0; x < numCols; x++)
-      {
-        var r = 0, g = 0, b = 0;
-        r = (Math.cos((x+this.rainbowModeParam)/2.0) + Math.cos((y+this.rainbowModeParam)/2.0)) * 64.0 + 128.0;
-        g = (Math.sin((x+this.rainbowModeParam)/1.5) + Math.sin((y+this.rainbowModeParam)/2.0)) * 64.0 + 128.0;
-        b = (Math.sin((x+this.rainbowModeParam)/2.0) + Math.cos((y+this.rainbowModeParam)/1.5)) * 64.0 + 128.0;
-        r = Math.max(0, Math.min(255, r + offset));
-        g = Math.max(0, Math.min(255, g + offset));
-        b = Math.max(0, Math.min(255, b + offset));
-        leds[x+(y*8)] = ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
-      }
-    }
-
-    if (this.outputLogs) console.log("%s -> INFO -> Updating rainbow...", this.name);
+    // if (LightController.outputLogs) console.log("%s -> DEBUG -> Updating Random Blinky...", LightController.name);
     driver.render(leds);
-},
-  
+  },
+
   // ====================
 
   setPower: function(status) { // Set power state
@@ -453,7 +501,7 @@ var LightController = {
     {
       if (this.outputLogs) console.log("%s -> SET -> Power -> %s.", this.name, status ? "On" : "Off");
       this.power = status;
-      this.updateUnicorn();
+      this.updateUnicorn(true);
     }
   },
 
@@ -467,7 +515,8 @@ var LightController = {
     {
       if (this.outputLogs) console.log("%s -> SET -> Brightness -> %s.", this.name, brightness);
       this.brightness = brightness;
-      if (this.power) this.updateUnicorn();
+      this.newModeSelected = true; // Brightness has changed <-> Display mode (multiplexed into brightness) has changed
+      if (this.power) this.updateUnicorn(true);
     }
   },
 
@@ -481,7 +530,7 @@ var LightController = {
     {
       if (this.outputLogs) console.log("%s -> SET -> Saturation -> %s.", this.name, saturation);
       this.saturation = saturation;
-      if (this.power) this.updateUnicorn();  
+      if (this.power) this.updateUnicorn(false);  
     }
   },
 
@@ -495,7 +544,7 @@ var LightController = {
     {
       if (this.outputLogs) console.log("%s -> SET -> Hue -> %s.", this.name, hue);
       this.hue = hue;
-      if (this.power) this.updateUnicorn();
+      if (this.power) this.updateUnicorn(false);
     }
   },
 
@@ -514,7 +563,7 @@ var LightController = {
 // Initialize the Unicorn pHAT to our default state at startup...
 if (LightController.outputLogs) console.log("%s -> INFO -> Starting: Initializing the pHAT HW.", LightController.name);
 driver.init(numLeds);
-LightController.updateUnicorn();
+LightController.updateUnicorn(true);
 
 // Generate a consistent UUID for our light Accessory that will remain the same even when
 // restarting our server. We use the `uuid.generate` helper function to create a deterministic
@@ -533,7 +582,8 @@ lightAccessory
   .getService(Service.AccessoryInformation)
     .setCharacteristic(Characteristic.Manufacturer, LightController.manufacturer)
     .setCharacteristic(Characteristic.Model, LightController.model)
-    .setCharacteristic(Characteristic.SerialNumber, LightController.serialNumber);
+    .setCharacteristic(Characteristic.SerialNumber, LightController.serialNumber)
+    .setCharacteristic(Characteristic.FirmwareRevision, LightController.firmwareRevision);
 
 // Listen for the "identify" event for this Accessory
 lightAccessory.on('identify', function(paired, callback) {
