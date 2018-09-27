@@ -24,7 +24,7 @@ var TemperatureSensor = {
 
   temperature: 0.0, // Latest read temperature
   counter: 10, // Counter used by the adaptive update frequency mechanism (see below)
-  exposure: false, // Allow exposure of temperature data to Prometheus?
+  exposure: true, // Allow exposure of temperature data to Prometheus?
   exposurePort: 9999, // Port exposed to Prometheus (when enabled)
   outputLogs: true, // Enable logging to the console?
 
