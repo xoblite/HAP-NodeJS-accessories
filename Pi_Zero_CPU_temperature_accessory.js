@@ -136,7 +136,7 @@ if (TemperatureSensor.exposure)
 //  {
 //    if (TemperatureSensor.outputLogs) console.log(`%s -> INFO -> Exiting [${code}]: Stopping Prometheus exposure server.`, TemperatureSensor.name);
 //      xxxxxxxxx
-// }
-});
+//  }
+//});
 
 // ================================================================================
