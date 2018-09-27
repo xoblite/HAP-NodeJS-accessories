@@ -8,7 +8,7 @@ _(Nb. I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) ac
 _Hint: Brightness selects display mode. >10 Regular Light. 1 CPU Load. 2 Rainbow. 3 Fire. 9 (subject to change) Icons. For now... ;)_
 
 **Pi_Zero_CPU_temperature_accessory.js**
-<br>Temperature sensor. Reads the [Raspberry Pi Zero](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) CPU temperature periodically (with adaptive frequency) and reports it back to HomeKit.
+<br>Temperature sensor. Reads the [Raspberry Pi Zero](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) CPU temperature periodically (with adaptive frequency) and reports it back to HomeKit. It also supports optional exposure to [Prometheus](https://prometheus.io/) (on port 9999 by default).
 
 Enjoy! :D
 
