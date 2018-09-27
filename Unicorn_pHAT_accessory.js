@@ -1,7 +1,7 @@
 // ================================================================================
-// *Apple HomeKit* integration for the Pimoroni ***Unicorn pHAT***
-// based on *HAP-NodeJS* (including its accessory examples) and *rpi-ws281x-native*
-// v1.0 - October 2018 - Karl-Henrik Henriksson - http://homekit.xoblite.net/
+// Apple HomeKit integration for the Pimoroni Unicorn pHAT (for RPi Zero)
+// based on HAP-NodeJS (including its accessory examples) and rpi-ws281x-native
+// v0.8.4 - October 2018 - Karl-Henrik Henriksson - http://homekit.xoblite.net/
 // ================================================================================
 
 var Accessory = require('../').Accessory;
@@ -577,6 +577,8 @@ var lightAccessory = exports.accessory = new Accessory(LightController.name, lig
 lightAccessory.username = LightController.username;
 lightAccessory.pincode = LightController.pincode;
 
+if (LightController.outputLogs) console.log("%s -> INFO -> If not bridged, the HomeKit pincode for this accessory is \x1b[7m %s \x1b[0m.", LightController.name, LightController.pincode);
+
 // Set some basic properties (these values are arbitrary and setting them is optional)
 lightAccessory
   .getService(Service.AccessoryInformation)
@@ -584,6 +586,8 @@ lightAccessory
     .setCharacteristic(Characteristic.Model, LightController.model)
     .setCharacteristic(Characteristic.SerialNumber, LightController.serialNumber)
     .setCharacteristic(Characteristic.FirmwareRevision, LightController.firmwareRevision);
+
+// ====================
 
 // Listen for the "identify" event for this Accessory
 lightAccessory.on('identify', function(paired, callback) {
@@ -658,7 +662,7 @@ lightAccessory
 
 // ================================================================================
 
-// Clean up by resetting the Unicorn pHAT hardware if the process is terminated... (i.e. through SIGTERM, SIGINT)
+// Clean up by resetting the Unicorn pHAT hardware if the process is terminated...
 process.on('exit', (code) => {
   if (LightController.outputLogs) console.log(`%s -> INFO -> Exiting [${code}]: Resetting the pHAT HW.`, LightController.name);
   driver.reset();
