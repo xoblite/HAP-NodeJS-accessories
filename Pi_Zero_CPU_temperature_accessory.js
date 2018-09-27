@@ -1,6 +1,6 @@
 // ================================================================================
 // Raspberry Pi Zero CPU temperature HomeKit accessory plugin for HAP-NodeJS
-// v0.9.0 - October 2018 - Karl-Henrik Henriksson - http://homekit.xoblite.net/
+// v0.9.2 - October 2018 - Karl-Henrik Henriksson - http://homekit.xoblite.net/
 // ================================================================================
 
 var Accessory = require('../').Accessory;
@@ -24,7 +24,7 @@ var TemperatureSensor = {
 
   temperature: 0.0, // Latest read temperature
   counter: 10, // Counter used by the adaptive update frequency mechanism (see below)
-  exposure: true, // Allow exposure of temperature data to Prometheus?
+  exposure: false, // Allow exposure of temperature data to Prometheus?
   exposurePort: 9999, // Port exposed to Prometheus (when enabled)
   outputLogs: true, // Enable logging to the console?
 
@@ -131,12 +131,12 @@ if (TemperatureSensor.exposure)
 // ================================================================================
 
 // Anything to clean up before exit?
- process.on('exit', (code) => {
-  if (TemperatureSensor.exposure)
-  {
-    if (TemperatureSensor.outputLogs) console.log(`%s -> INFO -> Exiting [${code}]: Stopping Prometheus exposure server.`, TemperatureSensor.name);
-//    exposure_server.xxxx
-  }
+// process.on('exit', (code) => {
+//  if (TemperatureSensor.exposure)
+//  {
+//    if (TemperatureSensor.outputLogs) console.log(`%s -> INFO -> Exiting [${code}]: Stopping Prometheus exposure server.`, TemperatureSensor.name);
+//      xxxxxxxxx
+// }
 });
 
 // ================================================================================
