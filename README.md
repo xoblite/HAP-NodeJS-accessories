@@ -8,6 +8,6 @@ Started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessorie
 **Unicorn_pHAT_accessory.js**
 <br>Advanced HomeKit integration for the [Pimoroni Unicorn pHAT](https://shop.pimoroni.com/products/unicorn-phat) for [Raspberry Pi Zero](https://www.raspberrypi.org/products/raspberry-pi-zero-w/). More information will be added here later.
 
-Have fun!
+Enjoy! :D
 
 BR//Karl-Henrik \[xoblite\]
