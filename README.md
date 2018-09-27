@@ -1,6 +1,6 @@
-# HAP-NodeJS-accessories
+# xoblite/HAP-NodeJS-accessories
 
-Started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessories a few weeks back; will upload the first public ones here shortly.
+_(Nb. I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few weeks back and will start uploading the first public ones here shortly. This readme will be continuously updated, however the code itself should hopefully be somewhat self-explainable... ;-) )_
 
 **Pi_Zero_CPU_temperature_accessory.js**
 <br>Temperature sensor. Reads the [Raspberry Pi Zero](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) CPU temperature periodically (with adaptive frequency) and reports in back to HomeKit.
@@ -10,4 +10,4 @@ Started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessorie
 
 Enjoy! :D
 
-BR//Karl-Henrik \[xoblite\]
+BR//KHH \[xoblite\]
