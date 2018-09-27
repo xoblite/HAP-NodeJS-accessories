@@ -19,11 +19,13 @@ var TemperatureSensor = {
   manufacturer: "HAP-NodeJS", // Manufacturer (optional)
   model: "Pi Zero CPU temperature", // Model (optional, not changeable by the user)
 //  hardwareRevision: "1.0", // Hardware version (optional)
-  firmwareRevision: "0.9.0", // Firmware version (optional)
+  firmwareRevision: "0.9.2", // Firmware version (optional)
   serialNumber: "homekit.xoblite.net", // Serial number (optional)
 
   temperature: 0.0, // Latest read temperature
   counter: 10, // Counter used by the adaptive update frequency mechanism (see below)
+  exposure: true, // Allow exposure of temperature data to Prometheus?
+  exposurePort: 9999, // Port exposed to Prometheus (when enabled)
   outputLogs: true, // Enable logging to the console?
 
   // ====================
@@ -34,7 +36,7 @@ var TemperatureSensor = {
 
     var degrees = execSync('cat /sys/class/thermal/thermal_zone0/temp', (err, stdout, stderr) => {
       if (err) {
-        console.log("%s -> ERROR -> Temperature could not be read!", TemperatureSensor.name);
+        if (TemperatureSensor.outputLogs) console.log("%s -> ERROR -> Temperature could not be read!", TemperatureSensor.name);
         return 0;
       }
     });
@@ -80,7 +82,7 @@ sensorAccessory
     if (TemperatureSensor.counter == 0)
     {
       // We just received a GET request, set update frequency to 3 seconds.. (see updateTemperature() below)
-      console.log("%s -> INFO -> Switching to 3 second updates...", TemperatureSensor.name);
+      if (TemperatureSensor.outputLogs) console.log("%s -> INFO -> Switching to 3 second updates...", TemperatureSensor.name);
       TemperatureSensor.counter = 10;
       clearInterval(TemperatureSensor.updateInterval);
       TemperatureSensor.updateInterval = setInterval(updateTemperature, 3000);
@@ -102,7 +104,7 @@ function updateTemperature() {
       TemperatureSensor.counter--;
       if (TemperatureSensor.counter == 0)
       {
-        console.log("%s -> INFO -> Switching to 30 second updates...", TemperatureSensor.name);
+        if (TemperatureSensor.outputLogs) console.log("%s -> INFO -> Switching to 30 second updates...", TemperatureSensor.name);
         clearInterval(TemperatureSensor.updateInterval);
         TemperatureSensor.updateInterval = setInterval(updateTemperature, 30000);
       }
@@ -113,9 +115,28 @@ TemperatureSensor.updateInterval = setInterval(updateTemperature, 3000);
 
 // ================================================================================
 
+// Exposure of temperature data to Prometheus?
+if (TemperatureSensor.exposure)
+{
+  if (TemperatureSensor.outputLogs) console.log("%s -> INFO -> Starting: \x1b[7m Prometheus exposure server listening on port %s \x1b[0m.", TemperatureSensor.name, TemperatureSensor.exposurePort);
+  var http = require('http');
+  http.createServer(function (request, response) {
+    var kv = 'raspberry_pi_zero_cpu_temperature ' + TemperatureSensor.temperature.toFixed(1) + '\n';
+    response.writeHead(200, {'Content-Type': 'text/plain'});
+    response.write(kv);
+    response.end();
+  }).listen(TemperatureSensor.exposurePort);  
+}
+
+// ================================================================================
+
 // Anything to clean up before exit?
-// process.on('exit', (code) => {
-//  if (TemperatureSensor.outputLogs) console.log(`%s -> INFO -> Exiting [${code}]...`, TemperatureSensor.name);
-// });
+ process.on('exit', (code) => {
+  if (TemperatureSensor.exposure)
+  {
+    if (TemperatureSensor.outputLogs) console.log(`%s -> INFO -> Exiting [${code}]: Stopping Prometheus exposure server.`, TemperatureSensor.name);
+//    exposure_server.xxxx
+  }
+});
 
 // ================================================================================
