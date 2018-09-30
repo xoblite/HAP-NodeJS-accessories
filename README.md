@@ -8,7 +8,7 @@ _(Nb. I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) ac
 _Hint: Brightness selects display mode. >10 Regular Light. 1 CPU Load. 2 Rainbow. 3 Fire. 9 (subject to change) Icons. For now... ;)_
 
 **Pi_Zero_CPU_statistics_accessory.js**
-<br>CPU Load Meter (via a spoofed humidity sensor showing the non-idle 3 second average load in %) and Temperature Sensor. Reads the current values from the [Raspberry Pi Zero](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) periodically (with adaptive frequency) and reports it back to HomeKit. It also supports optional exposure to [Prometheus](https://prometheus.io/) (on port 9999 by default), and can thereby easily also be monitored beautifully by [Grafana](https://grafana.com/) (based on exposed metrics such as _raspberry_pi_zero_cpu_load_non_idle_,_raspberry_pi_zero_cpu_temperature_, and a few others).
+<br>CPU Load Meter (via a spoofed humidity sensor showing the non-idle 3 second average load in %) and Temperature Sensor. Reads the current values from the [Raspberry Pi Zero](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) periodically (with adaptive frequency) and reports it back to HomeKit. It also supports optional exposure to [Prometheus](https://prometheus.io/) (on port 9999 by default), and can thereby easily also be monitored beautifully by [Grafana](https://grafana.com/) (based on exposed metrics such as _raspberry_pi_zero_cpu_load_non_idle_, _raspberry_pi_zero_cpu_temperature_, and a few others).
 
 Enjoy! :D
 
