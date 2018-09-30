@@ -238,7 +238,7 @@ var LightController = {
         {
           if (this.currentDisplayMode == 1) console.log("%s -> MODE -> Disabling CPU load display mode.", this.name);
           else if (this.currentDisplayMode == 2) console.log("%s -> MODE -> Disabling Rainbow display mode.", this.name);
-          else if (this.currentDisplayMode == 3) console.log("%s -> MODE -> Disabling Random Blinky display mode.", this.name);
+          else if (this.currentDisplayMode == 3) console.log("%s -> MODE -> Disabling Fire display mode.", this.name);
         }
         clearInterval(this.currentDisplayModeInterval);
         this.currentDisplayModeInterval = null;
@@ -264,13 +264,13 @@ var LightController = {
           this.rainbowUnicorn();
           this.currentDisplayModeInterval = setInterval(this.rainbowUnicorn, 20); // -> 50 FPS... ;)
         }
-        else if (this.brightness == 3) // Random Blinky display mode
+        else if (this.brightness == 3) // Fire display mode
         {
-          if (this.outputLogs) console.log("%s -> MODE -> Enabling Random Blinky display mode.", this.name);
+          if (this.outputLogs) console.log("%s -> MODE -> Enabling Fire display mode.", this.name);
           this.currentDisplayMode = 3;
           driver.setBrightness(25);
-          this.randomUnicorn();
-          this.currentDisplayModeInterval = setInterval(this.randomUnicorn, 250);
+          this.fireUnicorn();
+          this.currentDisplayModeInterval = setInterval(this.fireUnicorn, 250);
         }
         else if (this.brightness == 9) // Icons display mode
         {
@@ -449,7 +449,7 @@ var LightController = {
   // NOTE: The following function is a adapted and modified port to this framework
   // of the random_blinky.py Unicorn pHAT python example code by Pimoroni. Thanks guys... :)
 
-  randomUnicorn: function() {
+  fireUnicorn: function() {
     // NOTE: Because this function is not only called directly but also spawned continuously through setInterval(),
     // we can not use this.xxx references in here, but need to address directly using LightController.xxx .
     
@@ -490,7 +490,7 @@ var LightController = {
         leds[x+(y*8)] = rgb;
       }
     }
-    // if (LightController.outputLogs) console.log("%s -> DEBUG -> Updating Random Blinky...", LightController.name);
+    // if (LightController.outputLogs) console.log("%s -> DEBUG -> Updating Fire...", LightController.name);
     driver.render(leds);
   },
 
@@ -561,7 +561,7 @@ var LightController = {
 // ================================================================================
 
 // Initialize the Unicorn pHAT to our default state at startup...
-if (LightController.outputLogs) console.log("%s -> INFO -> Starting: Initializing the pHAT HW.", LightController.name);
+if (LightController.outputLogs) console.log("%s -> INFO -> Starting: Running on Node.js %s. Initializing the pHAT HW.", LightController.name, process.version);
 driver.init(numLeds);
 LightController.updateUnicorn(true);
 
@@ -577,7 +577,7 @@ var lightAccessory = exports.accessory = new Accessory(LightController.name, lig
 lightAccessory.username = LightController.username;
 lightAccessory.pincode = LightController.pincode;
 
-if (LightController.outputLogs) console.log("%s -> INFO -> If not bridged, the HomeKit pincode for this accessory is \x1b[7m %s \x1b[0m.", LightController.name, LightController.pincode);
+if (LightController.outputLogs) console.log("%s -> INFO -> If not bridged, the HomeKit pincode for this accessory is \x1b[41m\x1b[37m %s \x1b[0m.", LightController.name, LightController.pincode);
 
 // Set some basic properties (these values are arbitrary and setting them is optional)
 lightAccessory
