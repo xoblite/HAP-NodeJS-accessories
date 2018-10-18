@@ -206,13 +206,14 @@ var LightController = {
   name: "Unicorn pHAT", // Name of accessory (changeable by the user)
   pincode: "031-45-154", // Pin code of accessory -> "Default" HAP-NodeJS accessory pin code
   username: "FA:3C:ED:5A:1A:1C", // MAC like address used by HomeKit to differentiate accessories
-  manufacturer: "HAP-NodeJS", // Manufacturer (optional)
+  manufacturer: "homekit.xoblite.net", // Manufacturer (optional)
   model: "Unicorn pHAT", // Model (optional, not changeable by the user)
-  serialNumber: "homekit.xoblite.net", // Serial number (optional)
+  serialNumber: "HAP-NodeJS", // Serial number (optional)
   firmwareRevision: "0.8.4", // Firmware version (optional)
 
   power: true, // Default power status
-  brightness: 1, // Default brightness (>=10) or display mode (<10), where 1 -> CPU load display mode
+//  brightness: 1, // Default brightness (>=10) or display mode (<10), where 1 -> CPU load display mode
+  brightness: 4, // TEMPORARY :)
   hue: 0, // Default hue
   saturation: 10, // Default saturation
 
@@ -223,6 +224,7 @@ var LightController = {
   cpuLoadModeIdleTime: 0, // Last CPU idle time measurement, used when calculating the current CPU load
   cpuLoadModeTimeStamp: 0, // Last millisecond time stamp, used when calculating the current CPU load
   rainbowModeParam: 0.0, // Dynamic variable used by the Rainbow display mode animation function
+  swirlCounter: 0, // // Dynamic variable used by the Swirl display mode animation function
 
   // ====================
   
@@ -239,6 +241,7 @@ var LightController = {
           if (this.currentDisplayMode == 1) console.log("%s -> MODE -> Disabling CPU load display mode.", this.name);
           else if (this.currentDisplayMode == 2) console.log("%s -> MODE -> Disabling Rainbow display mode.", this.name);
           else if (this.currentDisplayMode == 3) console.log("%s -> MODE -> Disabling Fire display mode.", this.name);
+          else if (this.currentDisplayMode == 4) console.log("%s -> MODE -> Disabling Swirl display mode.", this.name);
         }
         clearInterval(this.currentDisplayModeInterval);
         this.currentDisplayModeInterval = null;
@@ -271,6 +274,15 @@ var LightController = {
           driver.setBrightness(25);
           this.fireUnicorn();
           this.currentDisplayModeInterval = setInterval(this.fireUnicorn, 250);
+        }
+        else if (this.brightness == 4) // Swirl display mode
+        {
+          if (this.outputLogs) console.log("%s -> MODE -> Enabling Swirl display mode.", this.name);
+          this.currentDisplayMode =4;
+          this.swirlCounter = 0;
+          driver.setBrightness(10);
+          this.swirlUnicorn();
+          this.currentDisplayModeInterval = setInterval(this.swirlUnicorn, 125);
         }
         else if (this.brightness == 9) // Icons display mode
         {
@@ -417,6 +429,7 @@ var LightController = {
 
   // NOTE: The following function is a mostly direct port to this framework
   // of the rainbow.py Unicorn pHAT python example code by Pimoroni. Thanks guys... :)
+  // -> https://github.com/pimoroni/unicorn-hat
 
   rainbowUnicorn: function() {
     // NOTE: Because this function is not only called directly but also spawned continuously through setInterval(),
@@ -448,6 +461,7 @@ var LightController = {
 
   // NOTE: The following function is a adapted and modified port to this framework
   // of the random_blinky.py Unicorn pHAT python example code by Pimoroni. Thanks guys... :)
+  // -> https://github.com/pimoroni/unicorn-hat
 
   fireUnicorn: function() {
     // NOTE: Because this function is not only called directly but also spawned continuously through setInterval(),
@@ -458,8 +472,10 @@ var LightController = {
 //    driver.setBrightness(minBrightness);
 
     var r = 0, g = 0, b = 0, h = 0, s = 0, v = 0, rndm = 0, i, f, p, q, t;
-    for (var y = 0; y < numRows; y++) {
-      for (var x = 0; x < numCols; x++) {
+    for (var y = 0; y < numRows; y++)
+    {
+      for (var x = 0; x < numCols; x++)
+      {
         rndm = Math.random();
         h = 0.1 * rndm;
         s = 0.8;
@@ -487,10 +503,61 @@ var LightController = {
         g = Math.round(g * 255) * 256;
         b = Math.round(b * 255);
         var rgb = r+g+b;
-        leds[x+(y*8)] = rgb;
+//        leds[x+(y*8)] = rgb;
+        leds[x+(y*numCols)] = rgb;
       }
     }
     // if (LightController.outputLogs) console.log("%s -> DEBUG -> Updating Fire...", LightController.name);
+    driver.render(leds);
+  },
+
+  // ====================
+
+  // NOTE: The following function was directly inspired by the "LEDs with added trigonometry" blog entry by
+  // (pre-Pimoroni) Sandy Macdonald -> http://sandyjmacdonald.github.io/2015/01/20/leds-with-added-trigonometry/ . Thanks!
+
+  swirlUnicorn: function() {
+    // NOTE: Because this function is not only called directly but also spawned continuously through setInterval(),
+    // we can not use this.xxx references in here, but need to address directly using LightController.xxx .
+    
+    var xc, yc, zc, r, g, b, h, s, v, i, f, p, q, t;
+    for (var y = 0; y < numRows; y++)
+    {
+      for (var x = 0; x < numCols; x++)
+      {
+        xc = x + LightController.swirlCounter;
+        yc = y + LightController.swirlCounter;
+        zc = Math.sin(xc) + Math.cos(yc);
+        zc = (zc + 2) / 4;
+
+        h = 0.6 * zc;
+        s = 0.5;
+        v = zc;
+
+        i = Math.floor(h * 6);
+        f = h * 6 - i;
+        p = v * (1 - s);
+        q = v * (1 - f * s);
+        t = v * (1 - (1 - f) * s);
+        switch (i % 6) {
+            case 0: r = v, g = t, b = p; break;
+            case 1: r = q, g = v, b = p; break;
+            case 2: r = p, g = v, b = t; break;
+            case 3: r = p, g = q, b = v; break;
+            case 4: r = t, g = p, b = v; break;
+            case 5: r = v, g = p, b = q; break;
+        }
+
+        r = Math.round(r * 255) * 256 * 256;
+        g = Math.round(g * 255) * 256;
+        b = Math.round(b * 255);
+        var rgb = r+g+b;
+        leds[x+(y*numCols)] = rgb;        
+      }
+    }
+    LightController.swirlCounter++;
+    if (LightController.swirlCounter == 360) LightController.swirlCounter = 0;
+    // if (LightController.outputLogs) console.log("%s -> DEBUG -> Updating Swirl...", LightController.name);
     driver.render(leds);
   },
 
@@ -561,7 +628,11 @@ var LightController = {
 // ================================================================================
 
 // Initialize the Unicorn pHAT to our default state at startup...
-if (LightController.outputLogs) console.log("%s -> INFO -> Starting: Running on Node.js %s. Initializing the pHAT HW.", LightController.name, process.version);
+if (LightController.outputLogs)
+{
+  console.log("%s -> INFO -> Starting: Running on HomeCore (HAP-NodeJS) %s / Node.js %s.", LightController.name, require('../package.json').version, process.version);
+  console.log("%s -> INFO -> Starting: Initializing the pHAT HW.", LightController.name);
+}
 driver.init(numLeds);
 LightController.updateUnicorn(true);
 
@@ -577,7 +648,7 @@ var lightAccessory = exports.accessory = new Accessory(LightController.name, lig
 lightAccessory.username = LightController.username;
 lightAccessory.pincode = LightController.pincode;
 
-if (LightController.outputLogs) console.log("%s -> INFO -> If not bridged, the HomeKit pincode for this accessory is \x1b[41m\x1b[37m %s \x1b[0m.", LightController.name, LightController.pincode);
+if (LightController.outputLogs) console.log("%s -> INFO -> If not bridged, the HomeKit pincode for this accessory is \x1b[44m\x1b[37m %s \x1b[0m.", LightController.name, LightController.pincode);
 
 // Set some basic properties (these values are arbitrary and setting them is optional)
 lightAccessory
