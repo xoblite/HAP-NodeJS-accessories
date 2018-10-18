@@ -18,11 +18,11 @@ var PiZeroSensors = {
   name: "Pi Zero CPU statistics", // Name of accessory (changeable by the user)
   pincode: "031-45-154", // Pin code of accessory -> "Default" HAP-NodeJS accessory pin code
   username: "5C:24:EB:97:46:7E", // MAC like address used by HomeKit to differentiate accessories
-  manufacturer: "HAP-NodeJS", // Manufacturer (optional)
+  manufacturer: "homekit.xoblite.net", // Manufacturer (optional)
   model: "Pi Zero CPU statistics", // Model (optional, not changeable by the user)
 //  hardwareRevision: "1.0", // Hardware version (optional)
-  firmwareRevision: "0.9.3", // Firmware version (optional)
-  serialNumber: "homekit.xoblite.net", // Serial number (optional)
+  firmwareRevision: "18.10.2", // Firmware version (optional)
+  serialNumber: "HAP-NodeJS", // Serial number (optional)
 
   cpuLoadCurrent: 0.0, // Latest calculcated CPU load (3 second average)
   cpuLoadIdleTime: 0, // Last CPU idle time measurement, used when calculating the current CPU load
@@ -86,13 +86,15 @@ var PiZeroSensors = {
 
 // ================================================================================
 
+if (PiZeroSensors.outputLogs) console.log("%s -> INFO -> Starting: Running on HomeCore (HAP-NodeJS) %s / Node.js %s.", PiZeroSensors.name, require('../package.json').version, process.version);
+
 var sensorUUID = uuid.generate('hap-nodejs:accessories:sensor' + PiZeroSensors.name);
 var sensorAccessory = exports.accessory = new Accessory(PiZeroSensors.name, sensorUUID);
 
 // Add properties for publishing (in case we're using Core.js and not BridgedCore.js when starting HAP-NodeJS)
 sensorAccessory.username = PiZeroSensors.username;
 sensorAccessory.pincode = PiZeroSensors.pincode;
-if (PiZeroSensors.outputLogs) console.log("%s -> INFO -> If not bridged, the HomeKit pincode for this accessory is \x1b[41m\x1b[37m %s \x1b[0m.", PiZeroSensors.name, PiZeroSensors.pincode);
+if (PiZeroSensors.outputLogs) console.log("%s -> INFO -> If not bridged, the HomeKit pincode for this accessory is \x1b[44m\x1b[37m %s \x1b[0m.", PiZeroSensors.name, PiZeroSensors.pincode);
 
 sensorAccessory
   .getService(Service.AccessoryInformation)
@@ -177,9 +179,9 @@ if (PiZeroSensors.exposure)
   var http = require('http');
   http.createServer(function (request, response) {
     response.writeHead(200, {'Content-Type': 'text/plain'});
-    kv = 'raspberry_pi_zero_cpu_load_non_idle ' + PiZeroSensors.cpuLoadCurrent.toFixed(3) + '\n';
+    var kv = 'raspberry_pi_zero_cpu_load_non_idle ' + PiZeroSensors.cpuLoadCurrent.toFixed(3) + '\n';
     response.write(kv);
-    var kv = 'raspberry_pi_zero_cpu_temperature ' + PiZeroSensors.cpuTemperature.toFixed(1) + '\n';
+    kv = 'raspberry_pi_zero_cpu_temperature ' + PiZeroSensors.cpuTemperature.toFixed(1) + '\n';
     response.write(kv);
     // Bonus feature: Let's expose the Pi Zero W's WLAN interface (wlan0) total RX/TX packets & bytes as well... =]
     kv = 'raspberry_pi_zero_net_wlan0_packets_rx ' + execSync('cat /sys/class/net/wlan0/statistics/rx_packets', (err, stdout, stderr) => {});
