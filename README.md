@@ -1,4 +1,4 @@
-<img src="http://xoblite.net/images/homekit-xoblite-net.png"><br>
+# xoblite/HAP-NodeJS-accessories
 
 _(Nb. I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few weeks back and will start uploading the first public ones here shortly. This readme will be continuously updated, however the code itself should hopefully be somewhat self-explainable... ;) )_
 
@@ -14,3 +14,4 @@ _Hint: Brightness selects display mode:
 Enjoy! :D
 
 BR//KHH \[xoblite\]
+<p><img src="http://xoblite.net/images/homekit-xoblite-net.png">
