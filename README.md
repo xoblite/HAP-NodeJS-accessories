@@ -24,4 +24,3 @@ CPU Load Meter (via a spoofed humidity sensor showing the non-idle 3 second aver
 Enjoy! :D
 
 BR//KHH \[xoblite\]
-<p><img src="http://xoblite.net/images/homekit-xoblite-net.png" width="50%" height="50%">
