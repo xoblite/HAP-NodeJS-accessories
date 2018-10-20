@@ -1,8 +1,7 @@
-// ================================================================================
-// Apple HomeKit integration for the Pimoroni Unicorn pHAT (for RPi Zero)
-// based on HAP-NodeJS (including its accessory examples) and rpi-ws281x-native
-// v0.8.4 - October 2018 - Karl-Henrik Henriksson - http://homekit.xoblite.net/
-// ================================================================================
+// ================================================================================================
+// Pimoroni Unicorn pHAT (for RPi Zero) HomeKit accessory plugin for HAP-NodeJS + rpi-ws281x-native
+// (c) 2018 Karl-Henrik Henriksson - homekit@xoblite.net - http://homekit.xoblite.net/
+// ================================================================================================
 
 var Accessory = require('../').Accessory;
 var Service = require('../').Service;
@@ -208,12 +207,12 @@ var LightController = {
   username: "FA:3C:ED:5A:1A:1C", // MAC like address used by HomeKit to differentiate accessories
   manufacturer: "homekit.xoblite.net", // Manufacturer (optional)
   model: "Unicorn pHAT", // Model (optional, not changeable by the user)
+  firmwareRevision: "18.10.20", // Firmware version (optional)
   serialNumber: "HAP-NodeJS", // Serial number (optional)
-  firmwareRevision: "0.8.4", // Firmware version (optional)
 
   power: true, // Default power status
 //  brightness: 1, // Default brightness (>=10) or display mode (<10), where 1 -> CPU load display mode
-  brightness: 4, // TEMPORARY :)
+  brightness: 2, // TEMPORARY :)
   hue: 0, // Default hue
   saturation: 10, // Default saturation
 
@@ -223,6 +222,7 @@ var LightController = {
   currentDisplayModeInterval: null, // Pointer to a setInterval object when any dynamic/animated display mode has been enabled
   cpuLoadModeIdleTime: 0, // Last CPU idle time measurement, used when calculating the current CPU load
   cpuLoadModeTimeStamp: 0, // Last millisecond time stamp, used when calculating the current CPU load
+  cpuLoadHistory: new Array(numCols), // CPU load history (N last measurements of the 3-second averaged current CPU load)
   rainbowModeParam: 0.0, // Dynamic variable used by the Rainbow display mode animation function
   swirlCounter: 0, // // Dynamic variable used by the Swirl display mode animation function
 
@@ -239,9 +239,10 @@ var LightController = {
         if (this.outputLogs) 
         {
           if (this.currentDisplayMode == 1) console.log("%s -> MODE -> Disabling CPU load display mode.", this.name);
-          else if (this.currentDisplayMode == 2) console.log("%s -> MODE -> Disabling Rainbow display mode.", this.name);
+          else if (this.currentDisplayMode == 2) console.log("%s -> MODE -> Disabling CPU history display mode.", this.name);
           else if (this.currentDisplayMode == 3) console.log("%s -> MODE -> Disabling Fire display mode.", this.name);
           else if (this.currentDisplayMode == 4) console.log("%s -> MODE -> Disabling Swirl display mode.", this.name);
+          else if (this.currentDisplayMode == 5) console.log("%s -> MODE -> Disabling Rainbow display mode.", this.name);
         }
         clearInterval(this.currentDisplayModeInterval);
         this.currentDisplayModeInterval = null;
@@ -250,27 +251,23 @@ var LightController = {
       // Switch to the newly selected display mode...
       if (this.power && (this.brightness > 0))
       {
-        if (this.brightness == 1) // CPU load display mode
+        if (this.brightness == 1 || this.brightness == 2) // CPU load display mode: Current averaged load || Load history (last 8 measurements)
         {
-          if (this.outputLogs) console.log("%s -> MODE -> Enabling CPU load display mode.", this.name);
-          this.currentDisplayMode = 1;
+          if (this.outputLogs)
+          {
+            if (this.brightness == 1) console.log("%s -> MODE -> Enabling CPU load display mode.", this.name);
+            else console.log("%s -> MODE -> Enabling CPU history display mode.", this.name);
+          }
+          this.currentDisplayMode = this.brightness;
           this.cpuLoadModeIdleTime = this.cpuLoadModeTimeStamp = 0;
-          this.cpuloadavgUnicorn();
-          this.currentDisplayModeInterval = setInterval(this.cpuloadavgUnicorn, 3000);
-        }
-        else if (this.brightness == 2) // Rainbow display mode
-        {
-          if (this.outputLogs) console.log("%s -> MODE -> Enabling Rainbow display mode.", this.name);
-          this.currentDisplayMode = 2;
-          driver.setBrightness(50);
-          this.rainbowModeParam = 0.0;
-          this.rainbowUnicorn();
-          this.currentDisplayModeInterval = setInterval(this.rainbowUnicorn, 20); // -> 50 FPS... ;)
+          for (var n = 0; n < numCols; n++) { this.cpuLoadHistory[n] = 0.0; }
+          this.cpuloadUnicorn();
+          this.currentDisplayModeInterval = setInterval(this.cpuloadUnicorn, 3000);
         }
         else if (this.brightness == 3) // Fire display mode
         {
           if (this.outputLogs) console.log("%s -> MODE -> Enabling Fire display mode.", this.name);
-          this.currentDisplayMode = 3;
+          this.currentDisplayMode = this.brightness;
           driver.setBrightness(25);
           this.fireUnicorn();
           this.currentDisplayModeInterval = setInterval(this.fireUnicorn, 250);
@@ -278,11 +275,20 @@ var LightController = {
         else if (this.brightness == 4) // Swirl display mode
         {
           if (this.outputLogs) console.log("%s -> MODE -> Enabling Swirl display mode.", this.name);
-          this.currentDisplayMode =4;
+          this.currentDisplayMode = this.brightness;
           this.swirlCounter = 0;
           driver.setBrightness(10);
           this.swirlUnicorn();
           this.currentDisplayModeInterval = setInterval(this.swirlUnicorn, 125);
+        }
+        else if (this.brightness == 5) // Rainbow display mode
+        {
+          if (this.outputLogs) console.log("%s -> MODE -> Enabling Rainbow display mode.", this.name);
+          this.currentDisplayMode = this.brightness;
+          driver.setBrightness(50);
+          this.rainbowModeParam = 0.0;
+          this.rainbowUnicorn();
+          this.currentDisplayModeInterval = setInterval(this.rainbowUnicorn, 20); // -> 50 FPS... ;)
         }
         else if (this.brightness == 9) // Icons display mode
         {
@@ -389,7 +395,7 @@ var LightController = {
 
   // ====================
 
-  cpuloadavgUnicorn: function() {
+  cpuloadUnicorn: function() {
       // NOTE: Because this function is not only called directly but also spawned continuously through setInterval(),
       // we can not use this.xxx references in here, but need to address directly using LightController.xxx .
 
@@ -405,27 +411,65 @@ var LightController = {
         currentIdleTime += (os.cpus()[n].times.idle / 10);
       }
       var currentTimeStamp = performance.now();
+      var load = 1 - ((currentIdleTime - LightController.cpuLoadModeIdleTime) / (currentTimeStamp - LightController.cpuLoadModeTimeStamp));
 
-      if (LightController.cpuLoadModeTimeStamp == 0) driver.render(icon10percent);
-      else
+      // Push the new CPU load measurement into the top [position 0] of the history array [of size numCols]...
+      for (var n = 1; n < numCols; n++) {
+        if (LightController.cpuLoadHistory[numCols-n-1] != NaN) LightController.cpuLoadHistory[numCols-n] = LightController.cpuLoadHistory[numCols-n-1];
+        else LightController.cpuLoadHistory[numCols-n] = 0.0;
+        // if (LightController.outputLogs) console.log("%s -> DEBUG -> Updating history position [%s] -> %s.", LightController.name, numCols-n, LightController.cpuLoadHistory[numCols-n]);
+      }
+      LightController.cpuLoadHistory[0] = load;
+      // if (LightController.outputLogs) console.log("%s -> DEBUG -> Updating history position [0] -> %s.", LightController.name, LightController.cpuLoadHistory[0]);
+
+      if (LightController.brightness == 1) // Regular CPU load display mode (latest measurement, x-axis oriented -> 8 LEDs -> higher resolution)
       {
-        var load = 1 - ((currentIdleTime - LightController.cpuLoadModeIdleTime) / (currentTimeStamp - LightController.cpuLoadModeTimeStamp));
-        if (load < 0.15) driver.render(icon10percent);
-        else if (load < 0.25) driver.render(icon20percent);
-        else if (load < 0.35) driver.render(icon30percent);
-        else if (load < 0.45) driver.render(icon40percent);
-        else if (load < 0.55) driver.render(icon50percent);
-        else if (load < 0.65) driver.render(icon60percent);
-        else if (load < 0.75) driver.render(icon70percent);
-        else if (load < 0.85) driver.render(icon80percent);
-        else driver.render(icon90percent);  
+        if (LightController.cpuLoadModeTimeStamp == 0) driver.render(icon10percent);
+        else
+        {
+          if (load < 0.15) driver.render(icon10percent);
+          else if (load < 0.25) driver.render(icon20percent);
+          else if (load < 0.35) driver.render(icon30percent);
+          else if (load < 0.45) driver.render(icon40percent);
+          else if (load < 0.55) driver.render(icon50percent);
+          else if (load < 0.65) driver.render(icon60percent);
+          else if (load < 0.75) driver.render(icon70percent);
+          else if (load < 0.85) driver.render(icon80percent);
+          else driver.render(icon90percent);  
+        }
+      }
+      else // Alternative CPU load history display mode (8 last measurements, but y-axis oriented -> 4 LEDs -> lower resolution ~ 0/25/50/75 percent steps)
+      {
+        for (var n = 0; n < numLeds; n++) { leds[n] = 0x000000; }; // Flush LEDs array (all black pixels)
+        for (var n = 0; n < numCols; n++)
+        {
+          // if (LightController.cpuLoadHistory[n] == NaN) leds[31-n] = 0x666666;
+          if (LightController.cpuLoadModeTimeStamp == 0) leds[31-n] = 0x666666;
+          if (n == 0)
+          {
+            if (LightController.cpuLoadHistory[n] > 0.75) leds[7-n] = icon80percent[7];
+            if (LightController.cpuLoadHistory[n] > 0.50) leds[15-n] = icon60percent[5];
+            if (LightController.cpuLoadHistory[n] > 0.25) leds[23-n] = icon40percent[3];
+            if (LightController.cpuLoadHistory[n] >= 0.10) leds[31-n] = icon20percent[1];
+            else if (LightController.cpuLoadHistory[n] < 0.10) leds[31-n] = 0x666666;
+          }
+          else
+          {
+            if (LightController.cpuLoadHistory[n] > 0.75) leds[7-n] = icon80percent[7];
+            if (LightController.cpuLoadHistory[n] > 0.50) leds[15-n] = icon60percent[5];
+            if (LightController.cpuLoadHistory[n] > 0.25) leds[23-n] = icon40percent[3];
+            if (LightController.cpuLoadHistory[n] >= 0.10) leds[31-n] = icon20percent[1];
+            else if (LightController.cpuLoadHistory[n] < 0.10) leds[31-n] = 0x666666;
+          }
+        }
+        driver.render(leds);
       }
 
       LightController.cpuLoadModeIdleTime = currentIdleTime;
       LightController.cpuLoadModeTimeStamp = currentTimeStamp;
     },
 
-  // ====================
+// ====================
 
   // NOTE: The following function is a mostly direct port to this framework
   // of the rainbow.py Unicorn pHAT python example code by Pimoroni. Thanks guys... :)
@@ -627,13 +671,14 @@ var LightController = {
 
 // ================================================================================
 
-// Initialize the Unicorn pHAT to our default state at startup...
+// Initialize the Unicorn pHAT and some other stuff to their default state at startup...
 if (LightController.outputLogs)
 {
   console.log("%s -> INFO -> Starting: Running on HomeCore (HAP-NodeJS) %s / Node.js %s.", LightController.name, require('../package.json').version, process.version);
   console.log("%s -> INFO -> Starting: Initializing the pHAT HW.", LightController.name);
 }
 driver.init(numLeds);
+for (var n = 0; n < numCols; n++) { LightController.cpuLoadHistory[n] = 0.0; }
 LightController.updateUnicorn(true);
 
 // Generate a consistent UUID for our light Accessory that will remain the same even when
