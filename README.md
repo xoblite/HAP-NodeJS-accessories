@@ -1,5 +1,7 @@
 # xoblite/HAP-NodeJS-accessories
 
+<img src="http://xoblite.net/images/homekit-xoblite-net.png">
+
 _(Nb. I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few weeks back and will start uploading the first public ones here shortly. This readme will be continuously updated, however the code itself should hopefully be somewhat self-explainable... ;) )_
 
 **Unicorn_pHAT_accessory.js**
