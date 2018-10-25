@@ -19,7 +19,7 @@ CPU Load Meter (via a spoofed humidity sensor showing the non-idle 3 second aver
 
 **KEBA_P30_accessory.js**
 
-_(icon to be added)_
+<img src="http://xoblite.net/images/homekit-plugin-keba-p30.png" width="10%" height="10%">
 
 High level integration of the [KEBA KeContact P30 series](https://www.keba.com/en/emobility/products/product-overview/product_overview) wallbox charging stations for electric cars (via a spoofed fan accessory showing the charging/plugged state as well as the power output in percentage of the HW/SW configured maximum). Reads the current values periodically (10 seconds interleaving) from the wallbox using its [UDP based API](https://www.keba.com/en/emobility/service-support/downloads/Downloads) (note that your wallbox IP address must be configured on line 11), and reports back to HomeKit. It also supports optional exposure of these and other parameters to [Prometheus](https://prometheus.io/) (on port 11521, cf. K=11, E=5, B=2, A=1, by default), see above.
 
