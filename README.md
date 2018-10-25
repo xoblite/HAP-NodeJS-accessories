@@ -17,6 +17,10 @@ _Hint: Brightness selects display mode:
 
 CPU Load Meter (via a spoofed humidity sensor showing the non-idle 3 second average load in %) and Temperature Sensor. Reads the current values periodically (with adaptive frequency) from the [Raspberry Pi Zero](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) and reports it back to HomeKit. It also supports optional exposure to [Prometheus](https://prometheus.io/) (on port 9999 by default), and can thereby easily also be monitored beautifully by [Grafana](https://grafana.com/) (based on exposed metrics such as _raspberry_pi_zero_cpu_load_non_idle_, _raspberry_pi_zero_cpu_temperature_, and a few others).
 
+**KEBA_P30_accessory.js**
+
+High level integration of the KEBA KeContact P30 series wallbox charger for electric cars (via a spoofed fan accessory showing the charging/plugged state as well as the power output in percentage of the HW/SW configured maximum). Reads the current values periodically (10 seconds interleaving) and reports back to HomeKit. It also supports optional exposure to [Prometheus](https://prometheus.io/) (on port 11521, cf. K=11, E=5, B=2, A=1 by default), see above. May add a few more features before it's ready, haven't decided yet :)
+
 **Coming soon...**
 
 <img src="http://xoblite.net/images/homekit-plugin-awlob.png" width="10%" height="10%"> <img src="http://xoblite.net/images/homekit-plugin-sounds-like-home.png" width="10%" height="10%">
