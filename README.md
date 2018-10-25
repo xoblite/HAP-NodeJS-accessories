@@ -19,7 +19,7 @@ CPU Load Meter (via a spoofed humidity sensor showing the non-idle 3 second aver
 
 **KEBA_P30_accessory.js**
 
-High level integration of the KEBA KeContact P30 series wallbox charger for electric cars (via a spoofed fan accessory showing the charging/plugged state as well as the power output in percentage of the HW/SW configured maximum). Reads the current values periodically (10 seconds interleaving) and reports back to HomeKit. It also supports optional exposure to [Prometheus](https://prometheus.io/) (on port 11521, cf. K=11, E=5, B=2, A=1 by default), see above. May add a few more features before it's ready, haven't decided yet :)
+High level integration of the KEBA [KeContact P30 series wallbox charging station](https://www.keba.com/en/emobility/products/product-overview/product_overview) for electric cars (via a spoofed fan accessory showing the charging/plugged state as well as the power output in percentage of the HW/SW configured maximum). Reads the current values periodically (10 seconds interleaving) and reports back to HomeKit. It also supports optional exposure to [Prometheus](https://prometheus.io/) (on port 11521, cf. K=11, E=5, B=2, A=1 by default), see above. May add a few more features before it's ready, haven't decided yet :)
 
 **Coming soon...**
 
