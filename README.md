@@ -1,6 +1,6 @@
 # xoblite/HAP-NodeJS-accessories
 
-_I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few months back and will be uploading stuff here continuously. This readme will therefore also be updated continuously, however the code itself should hopefully be somewhat self-explainable as well...  :wink:_
+_I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few months back and will be uploading stuff here continuously. This readme is still a work-in-progress, however the code itself should hopefully be somewhat self-explainable as well...  :wink:_
 
 | Icon | Description |
 | :--: | :---------- |
