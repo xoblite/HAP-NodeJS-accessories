@@ -1,6 +1,6 @@
 # xoblite/HAP-NodeJS-accessories
 
-_(Nb. I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few weeks back and will start uploading the first public ones here shortly. This readme will be continuously updated, however the code itself should hopefully be somewhat self-explainable... ;) )_
+_(Nb. I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few months back and will be uploading stuff here continuously. This readme will therefore also be updated continuously, however the code itself should hopefully be somewhat self-explainable as well... ;) )_
 
 **SuperSnap_accessory.js**
 
