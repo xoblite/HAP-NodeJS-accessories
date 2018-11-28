@@ -2,6 +2,12 @@
 
 _(Nb. I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few weeks back and will start uploading the first public ones here shortly. This readme will be continuously updated, however the code itself should hopefully be somewhat self-explainable... ;) )_
 
+**SuperSnap_accessory.js**
+
+_(image to be added)_
+
+A multi-purpose tool to deliver snapshot photos and/or images via the HomeKit camera interface. Building off a merge and modification of the original HAP-NodeJS camera accessory code, this plugin provides integration with the Raspberry Pi Camera as well as to "random image" services like Picsum Photos, LoremFlickr and PlaceIMG. More information to be added later.
+
 **Unicorn_pHAT_accessory.js**
 
 <img src="http://xoblite.net/images/homekit-plugin-unicorn-phat.png" width="10%" height="10%">
