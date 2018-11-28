@@ -1,5 +1,4 @@
 <img src="http://xoblite.net/images/homekit-xoblite-net.png">
-
 _I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few months back and will be uploading stuff here continuously.<br>This readme is still a work-in-progress, however the code itself should hopefully be somewhat self-explainable as well...  :wink:_
 
 | Preview ======================== | Description =================================================== |
