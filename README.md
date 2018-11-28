@@ -1,14 +1,14 @@
-# xoblite/HAP-NodeJS-accessories
+## xoblite/HAP-NodeJS-accessories
 
-_(Nb. I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few months back and will be uploading stuff here continuously. This readme will therefore also be updated continuously, however the code itself should hopefully be somewhat self-explainable as well... ;) )_
+_(Nb. I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few months back and will be uploading stuff here continuously. This readme will therefore also be updated continuously, however the code itself should hopefully be somewhat self-explainable as well...  :wink: )_
 
 _(image to be added)_
 
-**SuperSnap_accessory.js**: A multi-purpose tool to deliver snapshot photos and/or images via the HomeKit camera interface. Building off a merge and modification of the original HAP-NodeJS camera accessory code, this plugin provides integration with the [Raspberry Pi Camera Module](https://www.raspberrypi.org/products/camera-module-v2/) as well as to "random image" services like [Picsum Photos](https://picsum.photos/), [LoremFlickr](https://loremflickr.com/) and [PlaceIMG](https://placeimg.com/). More information to be added later.
+**SuperSnap_accessory.js**: A multi-purpose tool to deliver snapshot photos and/or images via the HomeKit camera interface. Building off a merge and modification of the original HAP-NodeJS camera accessory code, this plugin provides integration with the [Raspberry Pi Camera Module](https://www.raspberrypi.org/products/camera-module-v2/) as well as to "random image" services like [Picsum Photos](https://picsum.photos/), [LoremFlickr](https://loremflickr.com/) and [PlaceIMG](https://placeimg.com/). More information to be added here later.
 
 <img src="http://xoblite.net/images/homekit-plugin-unicorn-phat.png" width="10%" height="10%">
 
-**Unicorn_pHAT_accessory.js**: Regular light, but also a CPU load meter, Fire, Swirl and Rainbow summoner, Mood indicator, and more! That is, quite advanced HomeKit integration for the [Pimoroni Unicorn pHAT](https://shop.pimoroni.com/products/unicorn-phat) for [Raspberry Pi Zero](https://www.raspberrypi.org/products/raspberry-pi-zero-w/). Uses the [rpi-ws281x-native](https://www.npmjs.com/package/rpi-ws281x-native) module to control the Unicorn pHAT, and [needs to run as root](https://www.npmjs.com/package/rpi-ws281x-native#needs-to-run-as-root) since this in turn needs to configure e.g. DMA and PWM to do this. More information will be added here later... :)
+**Unicorn_pHAT_accessory.js**: Regular light, but also a CPU load meter, Fire, Swirl and Rainbow summoner, Mood indicator, and more! That is, quite advanced HomeKit integration for the [Pimoroni Unicorn pHAT](https://shop.pimoroni.com/products/unicorn-phat) for [Raspberry Pi Zero](https://www.raspberrypi.org/products/raspberry-pi-zero-w/). Uses the [rpi-ws281x-native](https://www.npmjs.com/package/rpi-ws281x-native) module to control the Unicorn pHAT, and [needs to run as root](https://www.npmjs.com/package/rpi-ws281x-native#needs-to-run-as-root) since this in turn needs to configure e.g. DMA and PWM to do this. More information will be added here later.
 
 _Hint: Brightness selects display mode:
 <br>1 CPU Load. 2 CPU History. 3 Fire. 4 Swirl. 5 Rainbow. 9 (subject to change) Icons. >10 Regular Light. For now... ;)_
@@ -25,6 +25,6 @@ _Hint: Brightness selects display mode:
 
 <img src="http://xoblite.net/images/homekit-plugin-awlob.png" width="10%" height="10%"> <img src="http://xoblite.net/images/homekit-plugin-sounds-like-home.png" width="10%" height="10%">
 
-Enjoy! :D
+Enjoy! :sunglasses:
 
 BR//KHH \[xoblite\]
