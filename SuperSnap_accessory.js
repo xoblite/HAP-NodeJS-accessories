@@ -29,7 +29,7 @@ var SuperSnap = {
   manufacturer: "homekit.xoblite.net", // Manufacturer (optional)
   model: "SuperSnap", // Model (optional, not changeable by the user)
   // hardwareRevision: "1.0", // Hardware version (optional)
-  firmwareRevision: "18.11.28", // Firmware version (optional)
+  firmwareRevision: "18.12.3", // Firmware version (optional)
   serialNumber: "HAP-NodeJS", // Serial number (optional)
 
   updateIntervalObject: null, // Later saved setInterval() object
@@ -141,7 +141,7 @@ Camera.prototype.handleSnapshotRequest = function(request, callback) { // Snapsh
     else if (SuperSnap.snapshotSource == 2) // -> Fetch a random image from LoremFlickr
     {
       if (SuperSnap.outputLogs) console.log("%s -> INFO -> ...fetching a new random image from loremflickr.com.", SuperSnap.name);
-      snapshotCommand = 'wget https://loremflickr.com/' + request.width + '/' + request.height + '/all -q -O ' + snapshotFile;
+      snapshotCommand = 'wget https://loremflickr.com/' + request.width + '/' + request.height + '/nature/all -q -O ' + snapshotFile;
       SuperSnap.snapshotsBlocked = true;
       SuperSnap.updateIntervalObject = setInterval(snapshotsBlockedTimer, 30000); // Throttling -> Let a minimum of 30 seconds pass before we will fetch a new image
     }    
