@@ -1,7 +1,7 @@
-// ================================================================================
+// ===================================================================================
 // Raspberry Pi Zero CPU statistics HomeKit accessory plugin for HAP-NodeJS
-// v0.9.3 - October 2018 - Karl-Henrik Henriksson - http://homekit.xoblite.net/
-// ================================================================================
+// (c) 2018 Karl-Henrik Henriksson - homekit@xoblite.net - http://homekit.xoblite.net/
+// ===================================================================================
 
 var Accessory = require('../').Accessory;
 var Service = require('../').Service;
@@ -21,7 +21,7 @@ var PiZeroSensors = {
   manufacturer: "homekit.xoblite.net", // Manufacturer (optional)
   model: "Pi Zero CPU statistics", // Model (optional, not changeable by the user)
 //  hardwareRevision: "1.0", // Hardware version (optional)
-  firmwareRevision: "18.10.2", // Firmware version (optional)
+  firmwareRevision: "18.12.12", // Firmware version (optional)
   serialNumber: "HAP-NodeJS", // Serial number (optional)
 
   cpuLoadCurrent: 0.0, // Latest calculcated CPU load (3 second average)
@@ -30,20 +30,26 @@ var PiZeroSensors = {
   cpuTemperature: 0.0, // Latest read temperature
   counter: 10, // Counter used by the adaptive update frequency mechanism (see below)
   updateIntervalObject: null, // Later saved setInterval() object
-  exposure: false, // Allow exposure of temperature data to Prometheus?
+  exposure: true, // Allow exposure of temperature data to Prometheus?
   exposurePort: 9999, // Port exposed to Prometheus (when enabled)
-  outputLogs: true, // Enable logging to the console?
+  outputLogs: false, // Enable logging to the console?
 
   // ====================
 
-  getCPUload: function() { // Get CPU temperature
+  getCPUload: function() { // Get average CPU load
     // NOTE: Because this function is not only called directly but also spawned continuously through setInterval(),
     // we can not use this.xxx references in here, but need to address directly using PiZeroSensors.xxx .
 
+    // The following loop iterates over the number of available CPU cores, which means it
+    // should work both on the Pi Zero (1 core ARMv6) as well as the Pi 3 (4 core ARMv7) ...
     var currentIdleTime = 0;
     for (var n = 0; n < os.cpus().length; n++) {
       currentIdleTime += (os.cpus()[n].times.idle / 10);
     }
+    // ...but since we're only reporting a single percentage metric back to HomeKit, we then also need
+    // to divide the total idle time by the number of CPU cores... (i.e. averaging across *all* cores)
+    currentIdleTime /= os.cpus().length;
+
     var currentTimeStamp = performance.now();
 
     if (PiZeroSensors.cpuLoadTimeStamp == 0) PiZeroSensors.cpuLoadCurrent = 0;
@@ -86,7 +92,7 @@ var PiZeroSensors = {
 
 // ================================================================================
 
-if (PiZeroSensors.outputLogs) console.log("%s -> INFO -> Starting: Running on HomeCore (HAP-NodeJS) %s / Node.js %s.", PiZeroSensors.name, require('../package.json').version, process.version);
+console.log("%s -> INFO -> Starting: Running on HomeCore (HAP-NodeJS) %s / Node.js %s.", PiZeroSensors.name, require('../package.json').version, process.version);
 
 var sensorUUID = uuid.generate('hap-nodejs:accessories:sensor' + PiZeroSensors.name);
 var sensorAccessory = exports.accessory = new Accessory(PiZeroSensors.name, sensorUUID);
@@ -94,7 +100,7 @@ var sensorAccessory = exports.accessory = new Accessory(PiZeroSensors.name, sens
 // Add properties for publishing (in case we're using Core.js and not BridgedCore.js when starting HAP-NodeJS)
 sensorAccessory.username = PiZeroSensors.username;
 sensorAccessory.pincode = PiZeroSensors.pincode;
-if (PiZeroSensors.outputLogs) console.log("%s -> INFO -> If not bridged, the HomeKit pincode for this accessory is \x1b[44m\x1b[37m %s \x1b[0m.", PiZeroSensors.name, PiZeroSensors.pincode);
+console.log("%s -> INFO -> If not bridged, the HomeKit pincode for this accessory is \x1b[44m\x1b[37m %s \x1b[0m.", PiZeroSensors.name, PiZeroSensors.pincode);
 
 sensorAccessory
   .getService(Service.AccessoryInformation)
@@ -112,7 +118,7 @@ sensorAccessory.on('identify', function(paired, callback) {
 // ====================
 
 sensorAccessory
-  .addService(Service.HumiditySensor, "Pi Zero CPU load")
+  .addService(Service.HumiditySensor, "Pi Zero CPU Load")
   .getCharacteristic(Characteristic.CurrentRelativeHumidity)
   .on('get', function(callback) {
     if (!PiZeroSensors.exposure && (PiZeroSensors.counter == 0))
@@ -127,7 +133,7 @@ sensorAccessory
   });
 
   sensorAccessory
-  .addService(Service.TemperatureSensor, "Pi Zero CPU temperature")
+  .addService(Service.TemperatureSensor, "Pi Zero CPU Temperature")
   .getCharacteristic(Characteristic.CurrentTemperature)
   .on('get', function(callback) {
 //    if (!PiZeroSensors.exposure && (PiZeroSensors.counter == 0))
@@ -175,7 +181,7 @@ PiZeroSensors.updateIntervalObject = setInterval(updateStatistics, 3000);
 // Exposure of temperature data to Prometheus?
 if (PiZeroSensors.exposure)
 {
-  if (PiZeroSensors.outputLogs) console.log("%s -> INFO -> Starting: \x1b[7m Prometheus exposure server listening on port %s \x1b[0m.", PiZeroSensors.name, PiZeroSensors.exposurePort);
+  if (PiZeroSensors.outputLogs) console.log("%s -> INFO -> Starting:\n\n     \x1b[7m Prometheus exposure server listening on port %s. \x1b[0m\n", PiZeroSensors.name, PiZeroSensors.exposurePort);
   var http = require('http');
   http.createServer(function (request, response) {
     response.writeHead(200, {'Content-Type': 'text/plain'});
