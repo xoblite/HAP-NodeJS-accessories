@@ -1,6 +1,6 @@
 // ================================================================================================
 // Pimoroni Unicorn pHAT (for RPi Zero) HomeKit accessory plugin for HAP-NodeJS + rpi-ws281x-native
-// (c) 2018 Karl-Henrik Henriksson - homekit@xoblite.net - http://homekit.xoblite.net/
+// (c) 2018-2019 Karl-Henrik Henriksson - homekit@xoblite.net - http://homekit.xoblite.net/
 // ================================================================================================
 
 var Accessory = require('../').Accessory;
@@ -13,8 +13,16 @@ var uuid = require('../').uuid;
 const os = require('os');
 const { performance } = require('perf_hooks');
 const driver = require('../node_modules/rpi-ws281x-native'); // -> https://www.npmjs.com/package/rpi-ws281x-native
+
 const numLeds = 32; // Number of LEDs on the Unicorn pHAT (also matching the length of all related arrays elsewhere in the code)
 const numCols = 8, numRows = 4; // Number of columns and rows of the LED display (cf. 8x4 = 32 LEDs as per above)
+
+// LED DRIVER INIT PARAMETERS - DON'T CHANGE THESE UNLESS YOU HAVE PROBLEMS AND KNOW WHAT YOU'RE DOING...
+const DRIVER_FREQUENCY = 800000;
+const DRIVER_DMA_NUMBER = 10; // Note: The sometimes used DMA 5 causes networking issues on (at least) RPi Zero W, 3B+ and 3A+!
+const DRIVER_GPIO_PIN = 18;
+const DRIVER_INVERT = 0;
+const DRIVER_BRIGHTNESS = 255;
 
 // Default dynamic Unicorn pHAT colour array -> 8x4 pixels, all white LEDs ("white light")
 var leds =
@@ -207,7 +215,7 @@ var LightController = {
   username: "FA:3C:ED:5A:1A:1C", // MAC like address used by HomeKit to differentiate accessories
   manufacturer: "homekit.xoblite.net", // Manufacturer (optional)
   model: "Unicorn pHAT", // Model (optional, not changeable by the user)
-  firmwareRevision: "18.10.20", // Firmware version (optional)
+  firmwareRevision: "19.1.2", // Firmware version (optional)
   serialNumber: "HAP-NodeJS", // Serial number (optional)
 
   power: true, // Default power status
@@ -674,10 +682,18 @@ var LightController = {
 // Initialize the Unicorn pHAT and some other stuff to their default state at startup...
 if (LightController.outputLogs)
 {
-  console.log("%s -> INFO -> Starting: Running on HomeCore (HAP-NodeJS) %s / Node.js %s.", LightController.name, require('../package.json').version, process.version);
+  console.log("%s -> INFO -> Starting: Version %s, running on HomeCore (HAP-NodeJS) %s / Node.js %s.", LightController.name, LightController.firmwareRevision, require('../package.json').version, process.version);
   console.log("%s -> INFO -> Starting: Initializing the pHAT HW.", LightController.name);
 }
-driver.init(numLeds);
+
+var driverInitObject = new Object(),
+    frequency = DRIVER_FREQUENCY, // Note: All DRIVER_XXX parameters are defined near the top of this file for easy end-user reach ;)
+    dmaNum = DRIVER_DMA_NUMBER,
+    gpioPin = DRIVER_GPIO_PIN,
+    invert = DRIVER_INVERT,
+    brightness = DRIVER_BRIGHTNESS;
+driver.init(numLeds, driverInitObject);
+
 for (var n = 0; n < numCols; n++) { LightController.cpuLoadHistory[n] = 0.0; }
 LightController.updateUnicorn(true);
 
