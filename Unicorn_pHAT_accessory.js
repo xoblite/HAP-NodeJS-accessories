@@ -686,12 +686,12 @@ if (LightController.outputLogs)
   console.log("%s -> INFO -> Starting: Initializing the pHAT HW.", LightController.name);
 }
 
-var driverInitObject = new Object(),
-    frequency = DRIVER_FREQUENCY, // Note: All DRIVER_XXX parameters are defined near the top of this file for easy end-user reach ;)
-    dmaNum = DRIVER_DMA_NUMBER,
-    gpioPin = DRIVER_GPIO_PIN,
-    invert = DRIVER_INVERT,
-    brightness = DRIVER_BRIGHTNESS;
+var driverInitObject = { // Note: All DRIVER_XXX parameters are defined near the top of this file for easy end-user reach ;)
+    frequency: DRIVER_FREQUENCY,
+    dmaNum: DRIVER_DMA_NUMBER,
+    gpioPin: DRIVER_GPIO_PIN,
+    invert: DRIVER_INVERT,
+    brightness: DRIVER_BRIGHTNESS };
 driver.init(numLeds, driverInitObject);
 
 for (var n = 0; n < numCols; n++) { LightController.cpuLoadHistory[n] = 0.0; }
