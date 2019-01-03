@@ -1,4 +1,5 @@
-<img src="http://xoblite.net/images/homekit-xoblite-net.png" width="33%" height="33%"><br>_I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few months back and will be uploading stuff here continuously.<br>This readme is still a work-in-progress, however the code itself should hopefully be somewhat self-explainable as well...  :wink:_
+<img src="http://xoblite.net/images/homekit-xoblite-net.png" width="33%" height="33%"><br>_I started working on [HAP-NodeJS](https://github.com/KhaosT/HAP-NodeJS) accessory plugins a few months back and will be uploading stuff here continuously.<br>This readme is still a work-in-progress, however the code itself should hopefully be somewhat self-explainable as well...  :wink:
+<br>All plugins have been tested on [Raspberry Pi's](https://www.raspberrypi.org/products/) running [Raspbian Stretch](https://www.raspberrypi.org/downloads/raspbian/) and [Node.js 8.x](https://nodejs.org/dist/latest-v8.x/), but are provided “AS IS”._
 
 | Preview ======================== | Description =================================================== |
 | :---: | :--- |
@@ -14,3 +15,7 @@
 Enjoy! :sunglasses:
 
 BR//KHH \[xoblite\]
+
+========================
+
+_THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE._
