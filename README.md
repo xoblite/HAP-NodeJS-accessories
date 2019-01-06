@@ -11,6 +11,7 @@
 | <img src="http://xoblite.net/images/homekit-plugin-ping-presence.png" width="33%" height="33%"> | **PING_Presence_accessory.js**<br>Want to know if Elvis is in the building? Sure thing: This is a simple presence monitoring plugin, based on [PING](https://en.wikipedia.org/wiki/Ping_(networking_utility)); quite usable but with some non-avoidable caveats due to things like device sleep modes etc. More information will be added here later. | 
 | <img src="http://xoblite.net/images/homekit-plugin-sounds-like-home.png" width="33%" height="33%"> | **Coming soon...** :sweat_smile: |
 | <img src="http://xoblite.net/images/homekit-plugin-awlob.png" width="33%" height="33%"> | <br>**Coming soon...** :sweat_smile: <br><br><img src="http://xoblite.net/images/homekit-plugin-awlob-browser.png"> |
+| <img src="http://xoblite.net/images/homekit-plugin-polyphonic-home.png" width="33%" height="33%"> | **Coming soon...** :sweat_smile: |
 
 Enjoy! :sunglasses:
 
