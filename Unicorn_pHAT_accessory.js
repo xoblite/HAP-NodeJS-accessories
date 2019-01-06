@@ -215,7 +215,7 @@ var LightController = {
   username: "FA:3C:ED:5A:1A:1C", // MAC like address used by HomeKit to differentiate accessories
   manufacturer: "homekit.xoblite.net", // Manufacturer (optional)
   model: "Unicorn pHAT", // Model (optional, not changeable by the user)
-  firmwareRevision: "19.1.2", // Firmware version (optional)
+  firmwareRevision: "19.1.6", // Firmware version (optional)
   serialNumber: "HAP-NodeJS", // Serial number (optional)
 
   power: true, // Default power status
@@ -413,11 +413,17 @@ var LightController = {
 
       // if (LightController.outputLogs) console.log("%s -> DEBUG -> Calculating CPU load...", this.name);
 
-     // Calculate CPU load as 3 second average... (cf. top's update frequency, see also setInterval() @ 3000 msec above)
+      // Calculate the CPU load as 3 second average... (cf. top's update frequency, see also setInterval() @ 3000 msec above)
+      // Note that the following loop iterates over the number of available CPU cores, which means it
+      // should work both on the Pi Zero (1 core ARMv6) as well as the Pi 3 (4 core ARMv7) ...
       var currentIdleTime = 0;
       for (var n = 0; n < os.cpus().length; n++) {
         currentIdleTime += (os.cpus()[n].times.idle / 10);
       }
+      // ...but since we're only using a single percentage metric for our CPU load/history display modes, we then
+      // also need to divide the total idle time by the number of CPU cores... (i.e. averaging across *all* cores)
+      currentIdleTime /= os.cpus().length;
+
       var currentTimeStamp = performance.now();
       var load = 1 - ((currentIdleTime - LightController.cpuLoadModeIdleTime) / (currentTimeStamp - LightController.cpuLoadModeTimeStamp));
 
